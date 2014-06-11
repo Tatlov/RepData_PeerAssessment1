@@ -1,20 +1,185 @@
 # Reproducible Research: Peer Assessment 1
 
+```{r set_options, echo = TRUE}
+opts_chunk$set(echo = TRUE)
+```
+
+## Obtaining the repository including the data
+
+1. Went to the [repository for this course]
+(https://github.com/rdpeng/RepData_PeerAssessment1)
+
+2. Clicked fork
+
+3. On my local machine executed the command 
+git clone https://github.com/rdpeng/RepData_PeerAssessment1
+
+4. Navigated to the directory RepData_PeerAssessment1 using setwd()
+```{r}
+setwd(".")
+```
 
 ## Loading and preprocessing the data
 
-
+Get the file name:
+```{r, cache=TRUE}
+dir()
+```
+```{r}
+filename <- 'activity.zip'
+```
+Unzip activity.zip:
+```{r}
+unzip(filename)
+```
+Check for the name of the file containing the data set:
+```{r}
+dir()
+```
+```{r}
+filename <- 'activity.csv'
+```
+Read the file into a data frame:
+```{r}
+column_classes <- c("integer","Date","integer")
+activity <- read.csv(filename,colClasses = column_classes)
+```
+Inspect the data
+```{r}
+head(activity)
+str(activity)
+```
+There should be
+```{r}
+24*60/5
+```
+intervals in a day. Look at the relevant section of the data
+```{r}
+activity[285:291,]
+```
 
 ## What is mean total number of steps taken per day?
 
-
+Get the total number of steps per day
+```{r}
+steps_per_day <- aggregate(activity[,"steps"],by=as.list(activity["date"]),FUN=sum,na.rm=TRUE)
+names(steps_per_day) <- c("date","total_steps")
+head(steps_per_day)
+```
+Create a histogram of the total number of steps taken per day
+```{r, fig.height=6}
+hist(steps_per_day$total_steps, breaks=20)
+```
+Get the mean total number of steps per day
+```{r}
+mean_total_number_of_steps <- round(mean(steps_per_day[,"total_steps"]),0)
+```
+The person had `r mean_total_number_of_steps` as the mean total number of steps.  
+Get the median total number of steps per day
+```{r}
+median_total_number_of_steps <- median(steps_per_day[,"total_steps"])
+```
+The person had `r median_total_number_of_steps` as the median total number of steps. 
 
 ## What is the average daily activity pattern?
 
-
+Get the number of steps for the 5 minute intervals averaged over all days
+```{r}
+mean_steps_per_interval <- aggregate(activity[,"steps"],by=as.list(activity["interval"]),FUN=mean,na.rm=TRUE)
+names(mean_steps_per_interval) <- c("interval","mean_steps")
+head(mean_steps_per_interval)
+```
+Plot the result
+```{r}
+plot(mean_steps_per_interval$interval,mean_steps_per_interval$mean_steps,type="l")
+```
+Get the start of the maximum interval.
+```{r}
+interval_start <- mean_steps_per_interval[which.max(mean_steps_per_interval[,"mean_steps"]),"interval"]
+interval_start
+```
+The maximum mean number of steps occurs in the `r interval_start` to 
+`r interval_start+5` minute interval. If the counting of the intervals starts 
+at midnight, then this corresponds to an interval start time of
+`r floor(interval_start/60)`:`r interval_start-floor(interval_start/60)*60`.
 
 ## Imputing missing values
 
+Obtain the number of missing values
+```{r}
+number_of_na <- sum(is.na(activity$steps))
+total_records <- length(activity$steps)
+number_of_na
+```
+There are `r number_of_na` NAs in the data set. 
+This corresponds to `r round(number_of_na/total_records*100,1)`%.
 
+The imputation strategy is to replace the NAs with the mean for the interval
+as calculated above. Create a function for that purpose
+```{r}
+get_mean_for_interval <- function(interval){
+    mean_steps_per_interval[ mean_steps_per_interval[,"interval"] == interval,
+                             "mean_steps"]
+}
+```
+Replace NA values with the mean value for that interval as calculated above.
+```{r}
+imputed_activity <- activity
+imputed_activity[is.na(imputed_activity[,"steps"]),"steps"] <- 
+    sapply(imputed_activity[is.na(imputed_activity[,"steps"]),
+                                           "interval"],get_mean_for_interval)
+head(imputed_activity)
+```
+
+### Histogam, median, mean
+
+Get the total number of steps per day
+```{r}
+imputed_steps_per_day <- aggregate(imputed_activity[,"steps"],
+                                   by=as.list(imputed_activity["date"]),
+                                   FUN=sum)
+names(imputed_steps_per_day) <- c("date","total_steps")
+head(imputed_steps_per_day)
+```
+Create a histogram of the total number of steps taken per day
+```{r, fig.height=6}
+hist(imputed_steps_per_day$total_steps, breaks=20)
+```
+Get the mean total number of steps per day
+```{r}
+imputed_mean_total_number_of_steps <- round(mean(imputed_steps_per_day[,"total_steps"]),0)
+```
+The person had `r imputed_mean_total_number_of_steps` as the mean imputed total number of steps (compared to `r mean_total_number_of_steps` unimputed).
+Get the median total number of steps per day
+```{r}
+imputed_median_total_number_of_steps <- median(imputed_steps_per_day[,"total_steps"])
+```
+The person had `r imputed_median_total_number_of_steps` as the median imputed total number of steps (compared to `r median_total_number_of_steps` unimputed).
+
+Imputation increases the estimates of the total number of steps.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Add a column to the imputed_activity indicating if a day was a workday or a weekend.
+```{r}
+imputed_activity["day_category"] <- "weekday"
+imputed_activity[grepl("^[Ss]",weekdays(imputed_activity[,"date"])),"day_category"] <- "weekend"
+```
+
+Get the number of steps for the 5 minute intervals averaged over all 
+weekdays and weekend days
+```{r}
+imputed_mean_steps_per_interval <- aggregate(imputed_activity[,"steps"],
+                                             by=as.list(c(imputed_activity["day_category"],
+                                                          imputed_activity["interval"])),
+                                             FUN=mean)
+names(imputed_mean_steps_per_interval) <- c("day_category","interval","mean_steps")
+head(imputed_mean_steps_per_interval)
+```
+Plot the result
+```{r}
+library(ggplot2)
+g <- ggplot(imputed_mean_steps_per_interval,aes(interval,mean_steps))
+g + geom_line() + facet_wrap(~ day_category, nrow = 2)
+```
+
