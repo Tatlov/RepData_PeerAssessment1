@@ -230,7 +230,8 @@ names(imputed_steps_per_day) <- c("date","total_steps")
 ```{r check_imputed_steps_per_day}
 head(imputed_steps_per_day)
 ```
-Create a histogram of the total number of steps taken per day with imputed NAs:
+Create a histogram of the total number of steps taken per day after missing 
+values were imputed:
 ```{r imputed_total_number_of_steps_per_day_histogram, fig.height = 4}
 par(mar = c(5,4,2,2))
 hist(imputed_steps_per_day$total_steps, breaks=20,

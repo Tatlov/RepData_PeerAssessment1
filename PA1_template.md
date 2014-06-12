@@ -388,7 +388,8 @@ head(imputed_steps_per_day)
 ## 6 2012-10-06       15420
 ```
 
-Create a histogram of the total number of steps taken per day with imputed NAs:
+Create a histogram of the total number of steps taken per day after missing 
+values were imputed:
 
 ```r
 par(mar = c(5,4,2,2))

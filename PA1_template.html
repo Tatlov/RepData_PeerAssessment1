@@ -525,7 +525,8 @@ names(imputed_steps_per_day) &lt;- c(&quot;date&quot;,&quot;total_steps&quot;)
 ## 6 2012-10-06       15420
 </code></pre>
 
-<p>Create a histogram of the total number of steps taken per day with imputed NAs:</p>
+<p>Create a histogram of the total number of steps taken per day after missing 
+values were imputed:</p>
 
 <pre><code class="r">par(mar = c(5,4,2,2))
 hist(imputed_steps_per_day$total_steps, breaks=20,
