@@ -3,22 +3,28 @@
 Throughout the report I make sure that I always include the code that I use to 
 generate the output by setting echo = TRUE. I also set tidy = FALSE 
 to be able to create nicer line breaks.
-```{r set_global_options, echo = TRUE}
+
+```r
 opts_chunk$set(echo = TRUE, tidy = FALSE)
 ```
 
+
 [Making inline code visible]
 (http://stackoverflow.com/questions/20409172/how-to-display-verbatim-inline-r-code-with-backticks-using-rmarkdown):
-```{r make_inline_code_visible}
+
+```r
 rinline <- function(code) {
   sprintf('[code: ``` `r %s` ```] %s', deparse(substitute(code)), code)
 }
 ```
+
 Demonstration of inline code:
-```{r define_something}
+
+```r
 a <- 3
 ```
-Show the inline code and its result: `r rinline(a)`.
+
+Show the inline code and its result: [code: ``` `r a` ```] 3.
 
 ## Obtaining the repository including the data
 
@@ -32,41 +38,73 @@ git clone https://github.com/rdpeng/RepData_PeerAssessment1.
 
 4. Navigate to the directory RepData_PeerAssessment1 
 using setwd("your_directory"):
-```{r}
+
+```r
 setwd(".")
 ```
+
 
 ## Loading and preprocessing the data
 
 ### Load the data (i.e. read.csv())
 
 Set the zip filename:
-```{r set_zip_filename}
+
+```r
 filename <- 'activity.zip'
 ```
+
 Unzip activity.zip:
-```{r unzip_zip_file}
+
+```r
 unzip(filename)
 ```
+
 Set the data-set filename:
-```{r set_csv_filename}
+
+```r
 filename <- 'activity.csv'
 ```
+
 Read the file into a data frame called activity:
-```{r get_activity_data}
+
+```r
 column_classes <- c("integer","Date","integer")
 activity <- read.csv(filename,colClasses = column_classes)
 ```
+
 
 ### Process/transform the data (if necessary) into a format suitable for your analysis
 
 
 
 Inspect the data:
-```{r inspect_data}
+
+```r
 head(activity)
+```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
+```r
 str(activity)
 ```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
+
 We can see the variables:
 
 - steps: Number of steps taken in a 5-minute interval (missing values are coded as NA)
@@ -78,41 +116,84 @@ We can see the variables:
 We can also see that we got all 17,568 observations.
 
 There should be
-`r rinline(24*60/5)`
+[code: ``` `r 24 * 60/5` ```] 288
 intervals in a day. Look at the relevant section of the data
-```{r end_of_day}
+
+```r
 activity[285:291,]
 ```
+
+```
+##     steps       date interval
+## 285    NA 2012-10-01     2340
+## 286    NA 2012-10-01     2345
+## 287    NA 2012-10-01     2350
+## 288    NA 2012-10-01     2355
+## 289     0 2012-10-02        0
+## 290     0 2012-10-02        5
+## 291     0 2012-10-02       10
+```
+
 The intervals are given in the form 830 meaning 8:30 a.m. and not 830 minutes.
 To plot these times with the correct scale,
 I convert these to minutes since the start of the day:
-```{r convert_intervals_to_minutes}
+
+```r
 activity[,"interval"] <- (floor(activity[,"interval"]/100)*60 
                           + activity[,"interval"] %% 100)
 ```
+
 Look at the end of the first day again:
-```{r end_of_day_again}
+
+```r
 activity[285:291,]
 ```
-There are `r rinline(24*60)` minutes per day.
+
+```
+##     steps       date interval
+## 285    NA 2012-10-01     1420
+## 286    NA 2012-10-01     1425
+## 287    NA 2012-10-01     1430
+## 288    NA 2012-10-01     1435
+## 289     0 2012-10-02        0
+## 290     0 2012-10-02        5
+## 291     0 2012-10-02       10
+```
+
+There are [code: ``` `r 24 * 60` ```] 1440 minutes per day.
 
 ## What is mean total number of steps taken per day?
 
 Get the total number of steps per day, ignoring NAs:
-```{r get_total_number_of_steps_per_day}
+
+```r
 steps_per_day <- aggregate(activity[,"steps"],by=as.list(activity["date"]),
                            FUN=sum,na.rm=TRUE)
 names(steps_per_day) <- c("date","total_steps")
 ```
+
 Look at the first few lines:
-```{r check_total_number_of_steps_per_day}
+
+```r
 head(steps_per_day)
 ```
+
+```
+##         date total_steps
+## 1 2012-10-01           0
+## 2 2012-10-02         126
+## 3 2012-10-03       11352
+## 4 2012-10-04       12116
+## 5 2012-10-05       13294
+## 6 2012-10-06       15420
+```
+
 
 ### Make a histogram of the total number of steps taken each day
 
 Create a histogram of the total number of steps taken per day:
-```{r total_number_of_steps_per_day_histogram, fig.height = 4 }
+
+```r
 par( mar = c(5,4,2,1) )
 hist(steps_per_day$total_steps, breaks=20, 
      xlab="total number of steps per day in thousands",
@@ -122,20 +203,27 @@ axis(1, at = seq(0,22000,2000), labels= seq(0,22,2))
 axis(2, at = seq(0,10,2), labels = seq(0,10,2) )
 ```
 
+![plot of chunk total_number_of_steps_per_day_histogram](figure/total_number_of_steps_per_day_histogram.png) 
+
+
 ### Calculate and report the mean and median total number of steps taken per day
 
 Get the mean total number of steps per day
-```{r mean_total_number_of_steps}
+
+```r
 mean_total_number_of_steps <- round(mean(steps_per_day[,"total_steps"]),0)
 ```
-The person had `r rinline(mean_total_number_of_steps)` as the mean total number 
+
+The person had [code: ``` `r mean_total_number_of_steps` ```] 9354 as the mean total number 
 of steps per day.  
 
 Get the median total number of steps per day
-```{r median_total_number_of_steps}
+
+```r
 median_total_number_of_steps <- median(steps_per_day[,"total_steps"])
 ```
-The person had `r rinline(median_total_number_of_steps)` as the median total 
+
+The person had [code: ``` `r median_total_number_of_steps` ```] 10395 as the median total 
 number of steps per day. 
 
 ## What is the average daily activity pattern?
@@ -143,18 +231,33 @@ number of steps per day.
 ### Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 Get the number of steps for the 5 minute intervals averaged over all days
-```{r mean_steps_per_interval}
+
+```r
 mean_steps_per_interval <- aggregate(activity[,"steps"],
                                      by = as.list(activity["interval"]),
                                      FUN = mean, na.rm=TRUE)
 names(mean_steps_per_interval) <- c("interval","mean_steps")
 ```
+
 Look at the first few results:
-```{r check_mean_steps_per_interval}
+
+```r
 head(mean_steps_per_interval)
 ```
+
+```
+##   interval mean_steps
+## 1        0    1.71698
+## 2        5    0.33962
+## 3       10    0.13208
+## 4       15    0.15094
+## 5       20    0.07547
+## 6       25    2.09434
+```
+
 Plot the result
-```{r mean_steps_per_interval_plot, fig.height = 4}
+
+```r
 par( mar = c(5,4,2,1))
 plot(mean_steps_per_interval$interval,mean_steps_per_interval$mean_steps,
      type="l", xlab = "start time of interval", 
@@ -165,73 +268,129 @@ axis(1, at = seq(0,1440,length.out=13), labels = paste0(seq(0,24,length.out=13),
 axis(2, at = seq(0,225,25), labels = seq(0,225,25) )
 ```
 
+![plot of chunk mean_steps_per_interval_plot](figure/mean_steps_per_interval_plot.png) 
+
+
 ### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 Get the start of the maximum interval.
-```{r get_maximum_interval}
+
+```r
 interval_start <- mean_steps_per_interval[which.max(mean_steps_per_interval[,"mean_steps"]),"interval"]
 interval_start
+```
+
+```
+## [1] 515
+```
+
+```r
 maximum_mean_steps <- round(max(mean_steps_per_interval[,"mean_steps"]),0)
 ```
-`r rinline(maximum_mean_steps)`, the maximum mean number of steps, occurs in 
-the `r rinline(interval_start)` to 
-`r rinline(interval_start+5)` minute interval. This corresponds to the interval starting at
-`r rinline(floor(interval_start/60))`:`r rinline(interval_start %% 60)`.
+
+[code: ``` `r maximum_mean_steps` ```] 206, the maximum mean number of steps, occurs in 
+the [code: ``` `r interval_start` ```] 515 to 
+[code: ``` `r interval_start + 5` ```] 520 minute interval. This corresponds to the interval starting at
+[code: ``` `r floor(interval_start/60)` ```] 8:[code: ``` `r interval_start%%60` ```] 35.
 
 ## Imputing missing values
 
 ### Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
 Obtain the number of missing values
-```{r get_number_of_missing_values}
+
+```r
 number_of_na <- sum(is.na(activity$steps))
 number_of_na
+```
+
+```
+## [1] 2304
+```
+
+```r
 total_records <- length(activity$steps)
 total_records
 ```
-There are `r rinline(number_of_na)` NAs in the data set. 
-This corresponds to `r rinline(round(number_of_na/total_records*100,1))`% missing values.
+
+```
+## [1] 17568
+```
+
+There are [code: ``` `r number_of_na` ```] 2304 NAs in the data set. 
+This corresponds to [code: ``` `r round(number_of_na/total_records * 100, 1)` ```] 13.1% missing values.
 
 ### Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 The imputation strategy is to replace the NAs with the mean for the interval
 as calculated above. This introduces non-integer steps.
 Create a function for that purpose
-```{r get_mean_for_interval}
+
+```r
 get_mean_for_interval <- function(interval){
     mean_steps_per_interval[ mean_steps_per_interval[,"interval"] == interval,
                              "mean_steps"]
 }
 ```
 
+
 ### Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 Replace NA values with the mean value for that interval as calculated above:
-```{r create_imputed_data_set, tidy = FALSE}
+
+```r
 imputed_activity <- activity
 imputed_activity[is.na(imputed_activity[,"steps"]), "steps"] <- 
     sapply(imputed_activity[is.na(imputed_activity[,"steps"]), "interval"],
            get_mean_for_interval)
 ```
+
 Have a look at the result:
-```{r check_result_of_imputation}
+
+```r
 head(imputed_activity)
 ```
+
+```
+##     steps       date interval
+## 1 1.71698 2012-10-01        0
+## 2 0.33962 2012-10-01        5
+## 3 0.13208 2012-10-01       10
+## 4 0.15094 2012-10-01       15
+## 5 0.07547 2012-10-01       20
+## 6 2.09434 2012-10-01       25
+```
+
 
 ### Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 Get the total number of steps per day
-```{r get_total_number_of_steps_after_imputation}
+
+```r
 imputed_steps_per_day <- aggregate(imputed_activity[,"steps"],
                                    by=as.list(imputed_activity["date"]),
                                    FUN=sum)
 names(imputed_steps_per_day) <- c("date","total_steps")
 ```
-```{r check_imputed_steps_per_day}
+
+
+```r
 head(imputed_steps_per_day)
 ```
+
+```
+##         date total_steps
+## 1 2012-10-01       10766
+## 2 2012-10-02         126
+## 3 2012-10-03       11352
+## 4 2012-10-04       12116
+## 5 2012-10-05       13294
+## 6 2012-10-06       15420
+```
+
 Create a histogram of the total number of steps taken per day with imputed NAs:
-```{r imputed_total_number_of_steps_per_day_histogram, fig.height = 4}
+
+```r
 par(mar = c(5,4,2,2))
 hist(imputed_steps_per_day$total_steps, breaks=20,
      xlab="total number of steps per day in thousands",
@@ -241,27 +400,47 @@ axis(1, at = seq(0,22000,2000), labels= seq(0,22,2))
 axis(2, at = seq(0,20,5), labels = seq(0,20,5) )
 ```
 
+![plot of chunk imputed_total_number_of_steps_per_day_histogram](figure/imputed_total_number_of_steps_per_day_histogram.png) 
+
+
 Get the mean total number of steps per day
-```{r get_imputed_mean_total_number_of_steps}
+
+```r
 imputed_mean_total_number_of_steps <- round(mean(imputed_steps_per_day[,"total_steps"]),0)
 ```
-The person had `r rinline(sprintf("%i",imputed_mean_total_number_of_steps))` as the mean imputed total number of steps 
-(compared to `r rinline(sprintf("%i",mean_total_number_of_steps))` unimputed).
+
+The person had [code: ``` `r sprintf("%i", imputed_mean_total_number_of_steps)` ```] 10766 as the mean imputed total number of steps 
+(compared to [code: ``` `r sprintf("%i", mean_total_number_of_steps)` ```] 9354 unimputed).
 
 Get the median total number of steps per day
-```{r get_imputed_median_total_number_of_steps}
+
+```r
 imputed_median_total_number_of_steps <- median(imputed_steps_per_day[,"total_steps"])
 ```
-The person had `r rinline(sprintf("%i", round(imputed_median_total_number_of_steps, 0)))` 
+
+The person had [code: ``` `r sprintf("%i", round(imputed_median_total_number_of_steps, 0))` ```] 10766 
 as the median imputed total number of steps 
-(compared to `r rinline(sprintf("%i", round(median_total_number_of_steps, 0)))` unimputed).
+(compared to [code: ``` `r sprintf("%i", round(median_total_number_of_steps, 0))` ```] 10395 unimputed).
 
 Imputation increases the estimates of the average total number of steps per day. 
 The difference between the median and mean vanishes.
-```{r difference_imputed_unimputed}
+
+```r
 min(imputed_steps_per_day["total_steps"] - steps_per_day["total_steps"],na.rm=FALSE)
+```
+
+```
+## [1] 0
+```
+
+```r
 max(imputed_steps_per_day["total_steps"] - steps_per_day["total_steps"],na.rm=FALSE)
 ```
+
+```
+## [1] 10766
+```
+
 Thus the impact of the imputation strategy is to either increase or not change the 
 number of steps per day.
 
@@ -271,28 +450,45 @@ number of steps per day.
 
 Add a column to imputed_activity indicating if a day was a workday or a weekend.
 Notice that weekend days (Saturday, Sunday) start with S.
-```{r add_day_category}
+
+```r
 imputed_activity["day_category"] <- "weekday"
 imputed_activity[grepl("^[Ss]",weekdays(imputed_activity[,"date"])),"day_category"] <- "weekend"
 ```
+
 
 ### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
 Get the number of steps for the 5 minute intervals averaged over all 
 weekdays and weekend days
-```{r get_imputed_mean_steps_per_interval}
+
+```r
 imputed_mean_steps_per_interval <- aggregate(imputed_activity[,"steps"],
                                              by=as.list(c(imputed_activity["day_category"],
                                                           imputed_activity["interval"])),
                                              FUN=mean)
 names(imputed_mean_steps_per_interval) <- c("day_category","interval","mean_steps")
 ```
+
 Look at the first few observations:
-```{r check_imputed_mean_steps_per_interval}
+
+```r
 head(imputed_mean_steps_per_interval)
 ```
+
+```
+##   day_category interval mean_steps
+## 1      weekday        0    2.25115
+## 2      weekend        0    0.21462
+## 3      weekday        5    0.44528
+## 4      weekend        5    0.04245
+## 5      weekday       10    0.17317
+## 6      weekend       10    0.01651
+```
+
 Plot the result
-```{r imputed_mean_steps_per_interval_plot}
+
+```r
 library(ggplot2)
 g <- ggplot(imputed_mean_steps_per_interval,aes(interval,mean_steps))
 g <- g + geom_line() + facet_wrap(~ day_category, nrow = 2) + theme_bw()
@@ -303,6 +499,9 @@ g <- g + scale_x_continuous(breaks = seq(0, 1440, length.out = 13),
                             labels = paste0(seq(0, 24, length.out = 13),":00"))
 g
 ```
+
+![plot of chunk imputed_mean_steps_per_interval_plot](figure/imputed_mean_steps_per_interval_plot.png) 
+
 Based on the figure, we can see that the start to the day on a weekend is a bit 
 slower than on a weekday.
 Further there is an additional peak between 8 and 9 p.m. on weekends. The 
